@@ -24,3 +24,30 @@ window.open = function (url, target, features) {
 }
 
 document.addEventListener('click', hookClick, { capture: true })
+
+(function() {
+  // Detecta se está rodando dentro do PakePlus (Tauri)
+  const isPakePlus = !!(window.__TAURI__ || window.__TAURI_INTERNALS__);
+
+  if (isPakePlus) {
+    // 1. Esconde botões de download e "acessar online"
+    const esconder = ['.download-pc', '.acessar-online', '.botao-download'];
+    esconder.forEach(selector => {
+      document.querySelectorAll(selector).forEach(el => el.style.display = 'none');
+    });
+
+    // 2. Se estiver na landing page, redireciona para o login
+    const path = window.location.pathname;
+    if (path === '/' || path === '/landing' || path === '/index.html') {
+      window.location.replace('/login');
+    }
+
+    // 3. Opcional: intercepta o botão voltar para não sair do app
+    window.addEventListener('popstate', function() {
+      if (window.location.pathname === '/login' && document.referrer === '') {
+        // Impede de voltar para uma página "vazia"
+        history.pushState(null, '', '/login');
+      }
+    });
+  }
+})();
